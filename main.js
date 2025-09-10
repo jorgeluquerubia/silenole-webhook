@@ -342,9 +342,9 @@ async function handleOpenPack(user, phoneNumber) {
     console.log(`📅 Updated last_pack_opened_at for user ${user.id}`);
       
     // Obtener información de los cromos obtenidos
-    const { data: obtainedStickers, error: detailsError } = await supabase
+    const { data: obtainedStickers } = await supabase
       .from('stickers')
-      .select('player_name, team, rarity')
+      .select('number, player_name, team, rarity')
       .in('id', packStickers);
       
     if (detailsError) {
@@ -367,7 +367,7 @@ async function handleOpenPack(user, phoneNumber) {
         'epic': '🟣',
         'legendary': '🟠'
       };
-      message += `${rarityEmoji[sticker.rarity] || '⚪'} ${sticker.player_name} (${sticker.team})
+      message += `${rarityEmoji[sticker.rarity] || '⚪'} #${sticker.number} ${sticker.player_name} (${sticker.team})
 `;
     });
     
