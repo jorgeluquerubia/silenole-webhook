@@ -115,9 +115,14 @@ async function processMessage(message, contacts = []) {
   
   try {
     // Obtener información del contacto
+    console.log(`🔍 Looking for contact with wa_id: ${fromNumber}`);
+    console.log(`🔍 Available contacts:`, contacts);
+    
     const contact = contacts.find(c => c.wa_id === fromNumber);
     const contactName = contact?.profile?.name || null;
-    console.log(`📞 Contact info:`, { fromNumber, contactName });
+    
+    console.log(`📞 Found contact:`, contact);
+    console.log(`📞 Extracted contact name:`, contactName);
     
     // Obtener o crear usuario
     const user = await getOrCreateUser(fromNumber, contactName);
@@ -160,6 +165,9 @@ async function getOrCreateUser(phoneNumber, contactName = null) {
     // Usar el nombre del contacto si está disponible, si no usar el formato Usuario+número
     const username = finalContactName || `Usuario${phoneNumber.slice(-4)}`;
     
+    console.log(`💷 Final username to use: "${username}"`);
+    console.log(`💷 Contact name: "${finalContactName}"`);
+    
     const { data, error } = await supabase
       .from('profiles')
       .upsert(
@@ -170,7 +178,7 @@ async function getOrCreateUser(phoneNumber, contactName = null) {
         },
         {
           onConflict: 'phone_number',
-          ignoreDuplicates: false
+          ignoreDuplicates: false  // Esto fuerza la actualización del username
         }
       )
       .select()
