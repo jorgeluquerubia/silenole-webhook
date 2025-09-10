@@ -9,11 +9,17 @@ const WHATSAPP_PHONE_NUMBER_ID = '836611039527020';
 
 // Validar variables de entorno
 if (!SERVICE_ROLE_KEY) {
+  console.error('❌ Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
   throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
 }
 if (!WA_TOKEN) {
+  console.error('❌ Missing WA_TOKEN environment variable');
   throw new Error('Missing WA_TOKEN environment variable');
 }
+
+console.log('✅ Environment variables loaded successfully');
+console.log('📊 Service Role Key length:', SERVICE_ROLE_KEY?.length);
+console.log('📊 WA Token length:', WA_TOKEN?.length);
 
 // Inicializar Supabase con Service Role Key
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
@@ -99,6 +105,13 @@ async function processMessage(message) {
     }
   } catch (error) {
     console.error('❌ Error processing message:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error details:', {
+      name: error.name,
+      message: error.message,
+      fromNumber,
+      messageText
+    });
     await sendWhatsAppMessage(fromNumber, '❌ Hubo un error procesando tu mensaje. Inténtalo más tarde.');
   }
 }

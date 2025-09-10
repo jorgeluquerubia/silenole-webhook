@@ -1,0 +1,25 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [{
+    "id": "836611039527020",
+    "changes": [{
+      "value": {
+        "messaging_product": "whatsapp",
+        "metadata": {
+          "display_phone_number": "15550841097",
+          "phone_number_id": "836611039527020"
+        },
+        "messages": [{
+          "from": "34600000000",
+          "id": "wamid.test123",
+          "timestamp": "1234567890",
+          "text": {
+            "body": "@silenole ayuda"
+          },
+          "type": "text"
+        }]
+      },
+      "field": "messages"
+    }]
+  }]
+}
