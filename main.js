@@ -168,21 +168,41 @@ async function getOrCreateUser(phoneNumber, contactName = null) {
     console.log(`💷 Final username to use: "${username}"`);
     console.log(`💷 Contact name: "${finalContactName}"`);
     
-    const { data, error } = await supabase
+    // Intentar obtener usuario existente primero
+    const { data: existingUser } = await supabase
       .from('profiles')
-      .upsert(
-        {
+      .select('*')
+      .eq('phone_number', phoneNumber)
+      .single();
+      
+    let data, error;
+    
+    if (existingUser) {
+      // Usuario existe - actualizar con nombre real si lo tenemos
+      console.log(`🔄 Updating existing user with new info`);
+      const updateResult = await supabase
+        .from('profiles')
+        .update({ username: username })
+        .eq('phone_number', phoneNumber)
+        .select()
+        .single();
+      data = updateResult.data;
+      error = updateResult.error;
+    } else {
+      // Usuario no existe - crear nuevo
+      console.log(`🆕 Creating new user`);
+      const insertResult = await supabase
+        .from('profiles')
+        .insert({
           phone_number: phoneNumber,
           username: username,
           user_type: 'whatsapp'
-        },
-        {
-          onConflict: 'phone_number',
-          ignoreDuplicates: false  // Esto fuerza la actualización del username
-        }
-      )
-      .select()
-      .single();
+        })
+        .select()
+        .single();
+      data = insertResult.data;
+      error = insertResult.error;
+    }
       
     if (error) {
       console.error('❌ Error in upsert user:', error);
