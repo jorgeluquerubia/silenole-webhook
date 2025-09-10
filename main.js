@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 // Configuración
 const SUPABASE_URL = 'https://vwkoqdyrirgvtcyyxmxy.supabase.co';
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-const WA_TOKEN = Deno.env.get('WA_TOKEN');
+const WA_TOKEN = Deno.env.get('WA_TOKEN') || 'EAAJRnAiUdjUBPQr5esUZB7i2l0wyYIZBzGde12B7ZAaXjK0KdZCQozkP4GtlSuGTXbC6dw1b6RwKzeLOkueuC5ap0cFtiFn7ZBxTdz9MgsZCCLkorwXGZBolqCJML6HRZBixS1bm4pnh6lSvRmKYA5D6JZARETOW705XtAH7FDNV4jTZCics7CS1LDBNbI1ea1AJjz9smPRhaxlkJPulMY1ahRzzpIIpkIdjjtvUL4QwnhiSwZD';
 const WHATSAPP_PHONE_NUMBER_ID = '836611039527020';
 
 // Validar variables de entorno
