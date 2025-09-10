@@ -136,7 +136,8 @@ async function getOrCreateUser(phoneNumber) {
       .upsert(
         {
           phone_number: phoneNumber,
-          username: username
+          username: username,
+          user_type: 'whatsapp'
         },
         {
           onConflict: 'phone_number',
