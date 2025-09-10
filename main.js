@@ -64,15 +64,22 @@ Deno.serve(async (req) => {
       }
       
       const webhookData = body.entry?.[0]?.changes?.[0]?.value;
+      
+      // Solo procesar webhooks que contienen mensajes, no estados
+      if (webhookData?.statuses) {
+        console.log('ℹ️ Received status webhook, ignoring');
+        return new Response('OK', { status: 200 });
+      }
+      
       const messages = webhookData?.messages;
       const contacts = webhookData?.contacts || [];
       
-      // Debug: Mostrar toda la estructura de datos
-      console.log('🔍 DEBUG - Full webhook data:', JSON.stringify(webhookData, null, 2));
+      // Debug: Mostrar toda la estructura de datos solo para mensajes
+      console.log('🔍 DEBUG - Full message webhook data:', JSON.stringify(webhookData, null, 2));
       console.log('🔍 DEBUG - Messages:', JSON.stringify(messages, null, 2));
       console.log('🔍 DEBUG - Contacts:', JSON.stringify(contacts, null, 2));
       
-      if (!messages) {
+      if (!messages || messages.length === 0) {
         console.log('⚠️ No messages found in webhook');
         return new Response('OK', { status: 200 });
       }
