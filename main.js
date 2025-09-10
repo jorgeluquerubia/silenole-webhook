@@ -63,15 +63,20 @@ Deno.serve(async (req) => {
         return new Response('OK', { status: 200 });
       }
       
-      const messages = body.entry?.[0]?.changes?.[0]?.value?.messages;
+      const webhookData = body.entry?.[0]?.changes?.[0]?.value;
+      const messages = webhookData?.messages;
+      const contacts = webhookData?.contacts || [];
+      
       if (!messages) {
         console.log('⚠️ No messages found in webhook');
         return new Response('OK', { status: 200 });
       }
       
+      console.log(`📞 Found ${contacts.length} contacts:`, contacts);
+      
       // Procesar cada mensaje
       for (const message of messages) {
-        await processMessage(message);
+        await processMessage(message, contacts);
       }
       
       return new Response('OK', { status: 200 });
@@ -84,7 +89,7 @@ Deno.serve(async (req) => {
   return new Response('Method not allowed', { status: 405 });
 });
 
-async function processMessage(message) {
+async function processMessage(message, contacts = []) {
   const fromNumber = message.from;
   const messageText = message.text?.body?.toLowerCase().trim();
   
@@ -97,8 +102,13 @@ async function processMessage(message) {
   console.log(`🤖 Processing: "${messageText}" from ${fromNumber}`);
   
   try {
+    // Obtener información del contacto
+    const contact = contacts.find(c => c.wa_id === fromNumber);
+    const contactName = contact?.profile?.name || null;
+    console.log(`📞 Contact info:`, { fromNumber, contactName });
+    
     // Obtener o crear usuario
-    const user = await getOrCreateUser(fromNumber);
+    const user = await getOrCreateUser(fromNumber, contactName);
     console.log(`👤 User: ${user.username} (ID: ${user.id})`);
     
     // Procesar comandos
@@ -124,12 +134,12 @@ async function processMessage(message) {
   }
 }
 
-async function getOrCreateUser(phoneNumber) {
-  console.log(`👤 Getting or creating user for: ${phoneNumber}`);
+async function getOrCreateUser(phoneNumber, contactName = null) {
+  console.log(`👤 Getting or creating user for: ${phoneNumber}`, { contactName });
   
   try {
-    // Usar upsert para crear o obtener usuario existente
-    const username = `Usuario${phoneNumber.slice(-4)}`;
+    // Usar el nombre del contacto si está disponible, si no usar el formato Usuario+número
+    const username = contactName || `Usuario${phoneNumber.slice(-4)}`;
     
     const { data, error } = await supabase
       .from('profiles')
