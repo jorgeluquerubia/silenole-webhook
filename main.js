@@ -342,7 +342,7 @@ async function handleOpenPack(user, phoneNumber) {
     console.log(`📅 Updated last_pack_opened_at for user ${user.id}`);
       
     // Obtener información de los cromos obtenidos
-    const { data: obtainedStickers } = await supabase
+    const { data: obtainedStickers, error: detailsError } = await supabase
       .from('stickers')
       .select('number, player_name, team, rarity')
       .in('id', packStickers);
@@ -372,7 +372,7 @@ async function handleOpenPack(user, phoneNumber) {
     });
     
     message += `
-✨ ¡Próximo sobre disponible en 24 horas!`;
+✨ ¡Modo testing: Sin cooldown! 🧪`;
     
     console.log('📤 Sending pack results to user');
     await sendWhatsAppMessage(phoneNumber, message);
