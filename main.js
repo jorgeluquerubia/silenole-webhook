@@ -205,7 +205,7 @@ async function getOrCreateUser(phoneNumber, contactName = null) {
 async function handleHelp(phoneNumber) {
   const helpMessage = `🤖 *SileNole Bot - Comandos disponibles:*
 
-📦 *@silenole abrir sobre* - Abre un sobre de cromos (1 por día)
+📦 *@silenole abrir sobre* - Abre un sobre de cromos (1 por minuto - modo testing 🧪)
 📖 *@silenole ver album* - Ve tu colección completa  
 ❓ *@silenole ayuda* - Muestra esta ayuda
 
@@ -219,16 +219,16 @@ async function handleOpenPack(user, phoneNumber) {
   try {
     console.log(`📦 Opening pack for user ${user.username}`);
     
-    // Verificar cooldown de 24 horas
+    // Verificar cooldown de 1 minuto (para testing - cambiar a 24 horas en producción)
     if (user.last_pack_opened_at) {
       const lastOpened = new Date(user.last_pack_opened_at);
       const now = new Date();
-      const hoursDiff = (now.getTime() - lastOpened.getTime()) / (1000 * 60 * 60);
+      const minutesDiff = (now.getTime() - lastOpened.getTime()) / (1000 * 60);
       
-      if (hoursDiff < 24) {
-        const hoursRemaining = Math.ceil(24 - hoursDiff);
-        console.log(`⏰ User in cooldown: ${hoursRemaining} hours remaining`);
-        await sendWhatsAppMessage(phoneNumber, `⏰ Debes esperar ${hoursRemaining} horas antes de abrir otro sobre. ¡La espera vale la pena! 📦✨`);
+      if (minutesDiff < 1) {
+        const secondsRemaining = Math.ceil((1 - minutesDiff) * 60);
+        console.log(`⏰ User in cooldown: ${secondsRemaining} seconds remaining`);
+        await sendWhatsAppMessage(phoneNumber, `⏰ Debes esperar ${secondsRemaining} segundos antes de abrir otro sobre. ¡Modo testing activado! 🧪`);
         return;
       }
     }
