@@ -67,6 +67,11 @@ Deno.serve(async (req) => {
       const messages = webhookData?.messages;
       const contacts = webhookData?.contacts || [];
       
+      // Debug: Mostrar toda la estructura de datos
+      console.log('🔍 DEBUG - Full webhook data:', JSON.stringify(webhookData, null, 2));
+      console.log('🔍 DEBUG - Messages:', JSON.stringify(messages, null, 2));
+      console.log('🔍 DEBUG - Contacts:', JSON.stringify(contacts, null, 2));
+      
       if (!messages) {
         console.log('⚠️ No messages found in webhook');
         return new Response('OK', { status: 200 });
@@ -138,8 +143,15 @@ async function getOrCreateUser(phoneNumber, contactName = null) {
   console.log(`👤 Getting or creating user for: ${phoneNumber}`, { contactName });
   
   try {
+    // Si no tenemos el nombre del contacto, intentar obtenerlo de la API
+    let finalContactName = contactName;
+    if (!finalContactName) {
+      console.log('🔍 No contact name in webhook, trying WhatsApp API...');
+      finalContactName = await getWhatsAppContactInfo(phoneNumber);
+    }
+    
     // Usar el nombre del contacto si está disponible, si no usar el formato Usuario+número
-    const username = contactName || `Usuario${phoneNumber.slice(-4)}`;
+    const username = finalContactName || `Usuario${phoneNumber.slice(-4)}`;
     
     const { data, error } = await supabase
       .from('profiles')
@@ -389,6 +401,35 @@ function getRandomStickerByRarity(stickers) {
   // Seleccionar aleatoriamente
   const randomIndex = Math.floor(Math.random() * weightedStickers.length);
   return weightedStickers[randomIndex];
+}
+
+async function getWhatsAppContactInfo(phoneNumber) {
+  const url = `https://graph.facebook.com/v21.0/${phoneNumber}`;
+  
+  console.log(`📞 Trying to get contact info for ${phoneNumber}`);
+  
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${WA_TOKEN}`
+      }
+    });
+    
+    const result = await response.text();
+    
+    if (response.ok) {
+      const contactInfo = JSON.parse(result);
+      console.log(`✅ Got contact info:`, contactInfo);
+      return contactInfo.name || null;
+    } else {
+      console.log(`⚠️ WhatsApp API contact error: ${response.status} - ${result}`);
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Error getting WhatsApp contact info:', error);
+    return null;
+  }
 }
 
 async function sendWhatsAppMessage(toNumber, message) {
