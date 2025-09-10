@@ -225,7 +225,7 @@ async function getOrCreateUser(phoneNumber, contactName = null) {
 async function handleHelp(phoneNumber) {
   const helpMessage = `🤖 *SileNole Bot - Comandos disponibles:*
 
-📦 *@silenole abrir sobre* - Abre un sobre de cromos (1 por minuto - modo testing 🧪)
+📦 *@silenole abrir sobre* - Abre un sobre de cromos (sin cooldown - modo testing 🧪)
 📖 *@silenole ver album* - Ve tu colección completa  
 ❓ *@silenole ayuda* - Muestra esta ayuda
 
@@ -239,7 +239,11 @@ async function handleOpenPack(user, phoneNumber) {
   try {
     console.log(`📦 Opening pack for user ${user.username}`);
     
-    // Verificar cooldown de 1 minuto (para testing - cambiar a 24 horas en producción)
+    // Cooldown deshabilitado temporalmente para testing
+    console.log('🧪 Testing mode: Cooldown disabled');
+    
+    // TODO: Reactivar cooldown en producción
+    /*
     if (user.last_pack_opened_at) {
       const lastOpened = new Date(user.last_pack_opened_at);
       const now = new Date();
@@ -252,6 +256,7 @@ async function handleOpenPack(user, phoneNumber) {
         return;
       }
     }
+    */
     
     // Obtener todos los cromos disponibles
     const { data: allStickers, error: stickersError } = await supabase
