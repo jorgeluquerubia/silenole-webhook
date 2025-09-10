@@ -21,8 +21,16 @@ console.log('✅ Environment variables loaded successfully');
 console.log('📊 Service Role Key length:', SERVICE_ROLE_KEY?.length);
 console.log('📊 WA Token length:', WA_TOKEN?.length);
 
-// Inicializar Supabase con Service Role Key
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+// Inicializar Supabase con Service Role Key para saltarse RLS
+const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  },
+  db: {
+    schema: 'public'
+  }
+});
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
@@ -120,41 +128,35 @@ async function getOrCreateUser(phoneNumber) {
   console.log(`👤 Getting or creating user for: ${phoneNumber}`);
   
   try {
-    // Intentar obtener usuario existente
-    const { data: existingUser, error: selectError } = await supabase
+    // Usar upsert para crear o obtener usuario existente
+    const username = `Usuario${phoneNumber.slice(-4)}`;
+    
+    const { data, error } = await supabase
       .from('profiles')
-      .select('*')
-      .eq('phone_number', phoneNumber)
+      .upsert(
+        {
+          phone_number: phoneNumber,
+          username: username
+        },
+        {
+          onConflict: 'phone_number',
+          ignoreDuplicates: false
+        }
+      )
+      .select()
       .single();
       
-    if (existingUser) {
-      console.log(`✅ Found existing user: ${existingUser.username}`);
-      return existingUser;
+    if (error) {
+      console.error('❌ Error in upsert user:', error);
+      throw new Error(`Failed to upsert user: ${error.message}`);
     }
     
-    // Si no existe, crear nuevo usuario
-    if (selectError?.code === 'PGRST116') {
-      console.log(`🆕 Creating new user for ${phoneNumber}`);
-      const { data: newUser, error: insertError } = await supabase
-        .from('profiles')
-        .insert({
-          username: `Usuario${phoneNumber.slice(-4)}`,
-          phone_number: phoneNumber
-        })
-        .select()
-        .single();
-        
-      if (insertError) {
-        console.error('❌ Error creating user:', insertError);
-        throw new Error(`Failed to create user: ${insertError.message}`);
-      }
-      
-      console.log(`✅ Created new user: ${newUser.username} (ID: ${newUser.id})`);
-      return newUser;
+    if (data) {
+      console.log(`✅ Got/created user: ${data.username} (ID: ${data.id})`);
+      return data;
     }
     
-    // Otro tipo de error
-    throw new Error(`Database error: ${selectError.message}`);
+    throw new Error('No data returned from upsert');
     
   } catch (error) {
     console.error('❌ Error in getOrCreateUser:', error);
